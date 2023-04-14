@@ -6,13 +6,13 @@
         {
             "label": "setup build",
             "type": "shell",
-            "command": "cd ${workspaceFolder} && mkdir -p '${workspaceFolder}/build' && if [[ ! -e '${workspaceFolder}/build/res' ]]; then ln -ns '${workspaceFolder}/res' '${workspaceFolder}/build/res'; fi && cd ${workspaceFolder}/build && cmake .. && make . -j8",
+            "command": "cd ${workspaceFolder} && mkdir -p '${workspaceFolder}/build' && cd ${workspaceFolder}/build && cmake -G 'Ninja' -DCMAKE_BUILD_TYPE=Debug .. && ninja -j8",
             "problemMatcher": []
         },
         {
             "label": "build",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && make -j8",
+            "command": "cd '${workspaceFolder}/build' && ninja webUI -j8",
             "problemMatcher": [
                 "$gcc"
             ]
@@ -20,12 +20,12 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && ./OffscreenUI_test"
+            "command": "cd '${workspaceFolder}/build' && ./webUI/Debug/webUI"
         },
         {
             "label": "build and run",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && make -j8 && ./OffscreenUI_test",
+            "command": "cd '${workspaceFolder}/build' && ninja webUI -j8 && ./webUI/Debug/webUI",
             "problemMatcher": [
                 "$gcc"
             ]
