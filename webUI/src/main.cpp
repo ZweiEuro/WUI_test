@@ -65,6 +65,9 @@ int main(int argc, char *argv[])
 		settings.no_sandbox = true;
 #endif
 
+		// init custom scheme for local files
+		CefSchemeRegistrar::AddCustomScheme("local", true);
+
 		bool result = CefInitialize(args, settings, nullptr, nullptr);
 
 		// CefInitialize creates a sub-proccess and executes the same executeable, as calling CefInitialize, if not set different in settings.browser_subprocess_path
@@ -79,6 +82,12 @@ int main(int argc, char *argv[])
 	// init renderer and display
 
 	RenderHandler *renderHandler = new RenderHandler();
+	std::string current_dir = "";
+	{
+		auto charp = al_get_current_directory();
+		current_dir = std::string(charp) + "/";
+		free(charp);
+	}
 
 	// create browser-window
 	CefRefPtr<CefBrowser> browser;
@@ -92,8 +101,9 @@ int main(int argc, char *argv[])
 		CefBrowserSettings browserSettings;
 		browserSettings.windowless_frame_rate = 60; // 30 is default
 
-		browser = CefBrowserHost::CreateBrowserSync(window_info, browserClient.get(), "http://google.com", browserSettings, nullptr, nullptr);
+		auto path = "file://" + current_dir + "html/index.html";
 
+		browser = CefBrowserHost::CreateBrowserSync(window_info, browserClient.get(), path, browserSettings, nullptr, nullptr);
 		// inject user-input by calling - non-trivial for non-windows - checkout the cefclient source and the platform specific cpp, like cefclient_osr_widget_gtk.cpp for linux
 		// browser->GetHost()->SendKeyEvent(...);
 		// browser->GetHost()->SendMouseMoveEvent(...);

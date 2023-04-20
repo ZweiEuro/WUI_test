@@ -56,6 +56,10 @@ if(OS_LINUX)
     allegro_dialog
     Threads::Threads)
 
+    include("configure_files")
+    # copy over html files
+    configure_files("${CMAKE_CURRENT_SOURCE_DIR}/html" "${CEF_TARGET_OUT_DIR}/html" COPYONLY)
+
   # Set rpath so that libraries can be placed next to the executable.
   set_target_properties(${CEF_TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
   set_target_properties(${CEF_TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
@@ -67,6 +71,7 @@ if(OS_LINUX)
   # Copy binary and resource files to the target output directory.
   COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
   COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
+
   if (EXISTS "${CEF_BINARY_DIR}/libminigbm.so")
     COPY_FILES("${CEF_TARGET}" "libminigbm.so" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
   endif()

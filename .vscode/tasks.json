@@ -20,10 +20,13 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && rm -rf ./webUI/Debug/debug.log  && ./webUI/Debug/webUI ",
+            "command": " rm -rf debug.log  && ./webUI ",
             "problemMatcher": [
                 "$gcc"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}/build/webUI/Debug"
+            },
             "dependsOn": [
                 "build"
             ]
