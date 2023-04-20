@@ -20,17 +20,12 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && ./webUI/Debug/webUI",
+            "command": "cd '${workspaceFolder}/build' && rm -rf ./webUI/Debug/debug.log  && ./webUI/Debug/webUI ",
             "problemMatcher": [
                 "$gcc"
-            ]
-        },
-        {
-            "label": "build and run",
-            "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && ninja webUI -j8 && ./webUI/Debug/webUI",
-            "problemMatcher": [
-                "$gcc"
+            ],
+            "dependsOn": [
+                "build"
             ]
         }
     ]

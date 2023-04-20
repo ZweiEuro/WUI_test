@@ -11,11 +11,19 @@
 
 #include <stdio.h>
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_x.h>
+
+#ifdef ALLEGRO_WINDOWS
+#include <allegro5/allegro_windows.h>
+#endif
+
+#ifdef ALLEGRO_UNIX
+#include <allegro5/allegro_x.h>
+#endif
 
 #include <include/cef_client.h>
 
 #include "BrowserClient.hpp"
-
 const float FPS = 60;
 
 int main(int argc, char *argv[])
@@ -23,12 +31,13 @@ int main(int argc, char *argv[])
 	CefMainArgs args(argc, argv);
 
 	{
+
 		int result = CefExecuteProcess(args, nullptr, nullptr);
 		// checkout CefApp, derive it and set it as second parameter, for more control on
 		// command args and resources.
 		if (result >= 0) // child proccess has endend, so exit.
 		{
-			return result;
+			exit(result);
 		}
 		if (result == -1)
 		{
@@ -49,15 +58,21 @@ int main(int argc, char *argv[])
 		// CefString(&settings.resources_dir_path).FromASCII("");
 		// CefString(&settings.locales_dir_path).FromASCII("");
 
-		// settings.windowless_rendering_enabled = true;
+		settings.log_severity = LOGSEVERITY_VERBOSE;
+		settings.windowless_rendering_enabled = true;
+
+#if !defined(CEF_USE_SANDBOX)
+		settings.no_sandbox = true;
+#endif
 
 		bool result = CefInitialize(args, settings, nullptr, nullptr);
+
 		// CefInitialize creates a sub-proccess and executes the same executeable, as calling CefInitialize, if not set different in settings.browser_subprocess_path
 		// if you create an extra program just for the childproccess you only have to call CefExecuteProcess(...) in it.
 		if (!result)
 		{
 			// handle error
-			return -1;
+			exit(-2);
 		}
 	}
 
@@ -70,18 +85,14 @@ int main(int argc, char *argv[])
 	CefRefPtr<BrowserClient> browserClient;
 	{
 		CefWindowInfo window_info;
-		CefBrowserSettings browserSettings;
-
-		browserSettings.windowless_frame_rate = 60; // 30 is default
-
-		// in linux set a gtk widget, in windows a hwnd. If not available set nullptr - may cause some render errors, in context-menu and plugins.
-		// std::size_t windowHandle = 0;
-		// renderSystem->getAutoCreatedWindow()->getCustomAttribute("WINDOW", &windowHandle);
-		// window_info.SetAsWindowless(0); // false means no transparency (site background colour)
+		window_info.SetAsWindowless(0); // false means no transparency (site background colour)
 
 		browserClient = new BrowserClient(renderHandler);
 
-		browser = CefBrowserHost::CreateBrowserSync(window_info, browserClient, "http://google.com", browserSettings, nullptr, nullptr);
+		CefBrowserSettings browserSettings;
+		browserSettings.windowless_frame_rate = 60; // 30 is default
+
+		browser = CefBrowserHost::CreateBrowserSync(window_info, browserClient.get(), "http://google.com", browserSettings, nullptr, nullptr);
 
 		// inject user-input by calling - non-trivial for non-windows - checkout the cefclient source and the platform specific cpp, like cefclient_osr_widget_gtk.cpp for linux
 		// browser->GetHost()->SendKeyEvent(...);

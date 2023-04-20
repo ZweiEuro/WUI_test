@@ -26,6 +26,9 @@ private:
     std::atomic<bool> m_renderloop_running = false;
     std::atomic<bool> m_redraw_pending = false;
 
+    // OSR buffer
+    ALLEGRO_BITMAP *m_osr_buffer = NULL;
+
 public:
     RenderHandler(const int &FPS = BASE_FPS,
                   const int &width = BASE_WIDTH,
@@ -33,21 +36,32 @@ public:
     {
         if (!al_is_system_installed())
         {
-            fprintf(stderr, "Allegro not installed on Renderer start\n");
+
+            DLOG(WARNING) << "Allegro not installed on Renderer start";
             al_init();
         }
 
         m_display = al_create_display(width, height);
-        if (!m_display)
+
+        al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP); // use memory bitmap for OSR buffer
+
+        m_osr_buffer = al_create_bitmap(BASE_WIDTH, BASE_HEIGHT);
+
+        if (!m_display || !m_osr_buffer)
         {
-            fprintf(stderr, "Failed to create display.\n");
+            DLOG(FATAL) << "Failed to create display or OSR bitmap buffer";
             exit(1);
         }
+
+        // clear entire bitmap to white
+        auto locked_region = al_lock_bitmap(m_osr_buffer, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
+        memset(locked_region->data, 0, width * height * locked_region->pixel_size);
+        al_unlock_bitmap(m_osr_buffer);
 
         m_timer = al_create_timer(1.0 / FPS);
         if (!m_timer)
         {
-            fprintf(stderr, "Failed to create timer.\n");
+            DLOG(FATAL) << "Failed to create timer.";
             exit(1);
         }
 
@@ -55,7 +69,7 @@ public:
         m_event_queue = al_create_event_queue();
         if (!m_event_queue)
         {
-            fprintf(stderr, "Failed to create event queue.");
+            DLOG(FATAL) << "Failed to create event queue.";
             exit(1);
         }
 
@@ -106,7 +120,7 @@ public:
                     m_renderloop_running = false;
                     break;
                 default:
-                    fprintf(stderr, "Unsupported event received: %d\n", event.type);
+                    DLOG(INFO) << "Unsupported event received: " << event.type;
                     break;
                 }
             }
@@ -117,11 +131,16 @@ public:
                 // Redraw
                 if ((int)al_get_time() % 2 == 0)
                 {
-                    al_clear_to_color(al_map_rgb(255, 0, 0));
+                    // al_clear_to_color(al_map_rgb(0, 0, 0));
                 }
                 else
                 {
-                    al_clear_to_color(al_map_rgb(0, 255, 0));
+                    // al_clear_to_color(al_map_rgb(255, 255, 255));
+                }
+
+                if (!al_lock_bitmap_blocked(m_osr_buffer, ALLEGRO_LOCK_READONLY))
+                {
+                    al_draw_bitmap(m_osr_buffer, 0, 0, 0);
                 }
 
                 al_flip_display();
@@ -133,21 +152,51 @@ public:
 
     // CefRenderHandler interface
 public:
-    void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect)
+    virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect)
     {
         rect = CefRect(0, 0, al_get_display_width(m_display), al_get_display_height(m_display));
     }
 
-    void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects, const void *buffer, int width, int height)
+    virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects, const void *buffer, int width, int height)
     {
 
-        auto bitmap = al_get_backbuffer(m_display);
-        al_lock_bitmap(bitmap, ALLEGRO_PIXEL_FORMAT_ABGR_8888, ALLEGRO_LOCK_WRITEONLY);
-        memcpy(bitmap, buffer, width * height * 4);
-        al_unlock_bitmap(bitmap);
+        for (auto rect : dirtyRects)
+        {
+            DLOG(INFO) << "dirty Rect: " << rect.x << " " << rect.y << " " << rect.width << " " << rect.height << " " << width << " " << height;
+
+            // lock the region
+            auto locked_region = al_lock_bitmap_region(m_osr_buffer, rect.x, rect.y, rect.width, rect.height, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
+            if (!locked_region)
+            {
+                DLOG(WARNING) << "Failed to lock region"
+                              << "dirty Rect: " << rect.x << " " << rect.y << " " << rect.width << " " << rect.height;
+                return;
+            }
+
+            DLOG(INFO) << locked_region->data;
+
+            memcpy(locked_region->data, buffer, width * height * locked_region->pixel_size);
+
+            al_unlock_bitmap(m_osr_buffer);
+        }
+
+        DLOG(INFO) << "OnPaint";
+        return;
+        auto locked_region = al_lock_bitmap(m_osr_buffer, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
+        DLOG(INFO) << locked_region->data;
+
+        memset(locked_region->data, 0x00F8, 10);
+        // memcpy(locked_region->data, buffer, width * height * locked_region->pixel_size);
+        al_unlock_bitmap(m_osr_buffer);
     }
 
     // CefBase interface
+
+    ALLEGRO_DISPLAY *getDisplay() const
+    {
+        return m_display;
+    }
+
 public:
     IMPLEMENT_REFCOUNTING(RenderHandler);
 };
