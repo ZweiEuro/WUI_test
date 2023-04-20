@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 		// CefString(&settings.resources_dir_path).FromASCII("");
 		// CefString(&settings.locales_dir_path).FromASCII("");
 
-		settings.log_severity = LOGSEVERITY_VERBOSE;
+		settings.log_severity = LOGSEVERITY_INFO;
 		settings.windowless_rendering_enabled = true;
 
 #if !defined(CEF_USE_SANDBOX)

@@ -7,6 +7,7 @@
 #include <include/cef_app.h>
 #include <include/cef_client.h>
 #include <include/cef_render_handler.h>
+#include <mutex>
 
 #define BASE_FPS 60
 #define BASE_WIDTH 640
@@ -28,6 +29,7 @@ private:
 
     // OSR buffer
     ALLEGRO_BITMAP *m_osr_buffer = NULL;
+    std::mutex m_l_osr_buffer_lock;
 
 public:
     RenderHandler(const int &FPS = BASE_FPS,
@@ -129,18 +131,16 @@ public:
             if (m_redraw_pending && al_is_event_queue_empty(m_event_queue))
             {
                 // Redraw
-                if ((int)al_get_time() % 2 == 0)
+
+                if (m_l_osr_buffer_lock.try_lock())
                 {
-                    // al_clear_to_color(al_map_rgb(0, 0, 0));
+                    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+                    al_draw_bitmap(m_osr_buffer, 0, 0, 0);
+                    m_l_osr_buffer_lock.unlock();
                 }
                 else
                 {
-                    // al_clear_to_color(al_map_rgb(255, 255, 255));
-                }
-
-                if (!al_lock_bitmap_blocked(m_osr_buffer, ALLEGRO_LOCK_READONLY))
-                {
-                    al_draw_bitmap(m_osr_buffer, 0, 0, 0);
+                    DLOG(WARNING) << "OSR buffer locked, skipping redraw";
                 }
 
                 al_flip_display();
@@ -160,33 +160,61 @@ public:
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects, const void *buffer, int width, int height)
     {
 
+        if (dirtyRects.size() != 1)
+        {
+            // unclear how the buffer is organized when more than 1 rect needs to be redrawn
+
+            DLOG(FATAL) << "redrawing " << dirtyRects.size() << " rects, which is not yet implemented";
+        }
+
+        // convert buffer format to BGRA to RGBA
+        auto buffer_rgba = new uint8_t[width * height * 4];
+        memset(buffer_rgba, 0, width * height * 4);
+
+        for (int i = 0; i < width * height; i++)
+        {
+
+            buffer_rgba[i * 4 + 0] = ((uint8_t *)buffer)[i * 4 + 3];
+            buffer_rgba[i * 4 + 1] = ((uint8_t *)buffer)[i * 4 + 0];
+            buffer_rgba[i * 4 + 2] = ((uint8_t *)buffer)[i * 4 + 1];
+            buffer_rgba[i * 4 + 3] = ((uint8_t *)buffer)[i * 4 + 2];
+
+            /*
+            B  -> A
+            G  -> R
+            R  -> G
+            A  -> B
+
+            */
+        }
+
+        DLOG(INFO) << "want lock";
+        m_l_osr_buffer_lock.lock();
+        DLOG(INFO) << "locked";
         for (auto rect : dirtyRects)
         {
+            // TODO create the correct color buffer here and only for as large as the dirty rect needs it
+            const size_t offset = (rect.y * width + rect.x) * 4;
+            const int size = rect.width * rect.height * 4;
+
             DLOG(INFO) << "dirty Rect: " << rect.x << " " << rect.y << " " << rect.width << " " << rect.height << " " << width << " " << height;
 
             // lock the region
             auto locked_region = al_lock_bitmap_region(m_osr_buffer, rect.x, rect.y, rect.width, rect.height, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
             if (!locked_region)
             {
-                DLOG(WARNING) << "Failed to lock region"
-                              << "dirty Rect: " << rect.x << " " << rect.y << " " << rect.width << " " << rect.height;
-                return;
+                DLOG(FATAL) << "Failed to lock region"
+                            << "dirty Rect: " << rect.x << " " << rect.y << " " << rect.width << " " << rect.height;
+                exit(1);
             }
 
-            DLOG(INFO) << locked_region->data;
+            // Data copied in is in format BGRA
+            // paint the region in a random color
 
-            memcpy(locked_region->data, buffer, width * height * locked_region->pixel_size);
+            memcpy(locked_region->data, (void *)((size_t)buffer_rgba + offset), size);
 
-            al_unlock_bitmap(m_osr_buffer);
+            m_l_osr_buffer_lock.unlock();
         }
-
-        DLOG(INFO) << "OnPaint";
-        return;
-        auto locked_region = al_lock_bitmap(m_osr_buffer, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
-        DLOG(INFO) << locked_region->data;
-
-        memset(locked_region->data, 0x00F8, 10);
-        // memcpy(locked_region->data, buffer, width * height * locked_region->pixel_size);
         al_unlock_bitmap(m_osr_buffer);
     }
 
