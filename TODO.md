@@ -1,0 +1,8 @@
+- make custom scheme so backend can be navigated more cleanly (html things)
+- setup development set for some data
+- Fix renderer to only convert pixel data in designated rect sizes and not full buffer (data bottleneck)
+- parse mouse input modifiers, strg/ctrl/shift click
+- parse windows specific system keys?
+- forward key events to the UI
+- make the renderer of allegro independent thread from main (create display in that new thread and manage it internally)
+- handle mouse wheel events

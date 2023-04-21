@@ -24,6 +24,9 @@
 #include <include/cef_client.h>
 
 #include "BrowserClient.hpp"
+#include "Objects/Ball.hpp"
+#include "Input/InputManager.hpp"
+
 const float FPS = 60;
 
 CefRefPtr<WUI::RenderHandler> renderHandler;
@@ -106,11 +109,18 @@ int main(int argc, char *argv[])
 		auto path = "file://" + current_dir + "html/index.html";
 
 		browser = CefBrowserHost::CreateBrowserSync(window_info, browserClient.get(), path, browserSettings, nullptr, nullptr);
-		// inject user-input by calling - non-trivial for non-windows - checkout the cefclient source and the platform specific cpp, like cefclient_osr_widget_gtk.cpp for linux
-		// browser->GetHost()->SendKeyEvent(...);
-		// browser->GetHost()->SendMouseMoveEvent(...);
-		// browser->GetHost()->SendMouseClickEvent(...);
-		// browser->GetHost()->SendMouseWheelEvent(...);
+
+		WUI::InputManager::instance(browser->GetHost());
+
+		std::thread([=]() -> void
+					{
+                  WUI::InputManager::instance()->wait_for_key(ALLEGRO_KEY_ESCAPE);
+				  	DLOG(INFO) << "Shutting down";
+				                    renderHandler->shutdown();
+				  WUI::InputManager::instance()->shutdown();
+
+                  exit(0); })
+			.detach();
 	}
 
 	renderHandler->renderLoop();

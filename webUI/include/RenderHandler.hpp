@@ -26,7 +26,7 @@ namespace WUI
         ALLEGRO_TIMER *m_timer = NULL;             // rerender timer
 
         // Asynchronous control:
-        std::atomic<bool> m_renderloop_running = false;
+        std::atomic<bool> m_running = false;
         std::atomic<bool> m_redraw_pending = false;
 
         // OSR buffer
@@ -45,6 +45,8 @@ namespace WUI
 
         void renderLoop();
         ALLEGRO_DISPLAY *getDisplay() const;
+
+        void shutdown();
 
         // CefRenderHandler interface
     public: // OSR CEF stuff

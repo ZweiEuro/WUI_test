@@ -17,7 +17,6 @@ namespace WUI
         BrowserClient(CefRefPtr<WUI::RenderHandler> &renderHandler)
             : m_renderHandler(renderHandler)
         {
-            ;
         }
 
         virtual CefRefPtr<CefRenderHandler> GetRenderHandler()

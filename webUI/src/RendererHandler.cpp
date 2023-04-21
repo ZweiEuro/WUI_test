@@ -67,10 +67,10 @@ namespace WUI
     {
         // Start the timer
         al_start_timer(m_timer);
-        m_renderloop_running = true;
+        m_running = true;
 
         // Game loop
-        while (m_renderloop_running)
+        while (m_running)
         {
             ALLEGRO_EVENT event;
             ALLEGRO_TIMEOUT timeout;
@@ -90,7 +90,7 @@ namespace WUI
                     m_redraw_pending = true;
                     break;
                 case ALLEGRO_EVENT_DISPLAY_CLOSE:
-                    m_renderloop_running = false;
+                    m_running = false;
                     break;
                 default:
                     DLOG(INFO) << "Unsupported event received: " << event.type;
@@ -131,6 +131,12 @@ namespace WUI
             }
             CefDoMessageLoopWork();
         }
+
+        // teardown
+        al_destroy_timer(m_timer);
+        al_destroy_display(m_display);
+        al_destroy_bitmap(m_osr_buffer);
+        al_destroy_event_queue(m_event_queue);
     }
 
     // CefRenderHandler interface
@@ -205,6 +211,13 @@ namespace WUI
     ALLEGRO_DISPLAY *RenderHandler::getDisplay() const
     {
         return m_display;
+    }
+
+    void RenderHandler::shutdown()
+    {
+        DLOG(INFO) << ("[Renderer] shutting down");
+
+        m_running = false;
     }
 
 }
