@@ -3,9 +3,9 @@
 namespace WUI
 {
 
-    RenderHandler::RenderHandler(const int &FPS = BASE_FPS,
-                                 const int &width = BASE_WIDTH,
-                                 const int &height = BASE_HEIGHT)
+    RenderHandler::RenderHandler(const int &FPS,
+                                 const int &width,
+                                 const int &height)
     {
         if (!al_is_system_installed())
         {
@@ -53,6 +53,8 @@ namespace WUI
         // Display a black screen, clear the screen once
         al_clear_to_color(al_map_rgb(0, 0, 0));
         al_flip_display();
+
+        m_background_color = CefColorSetARGB(255, 255, 0, 0);
     }
 
     RenderHandler::~RenderHandler()
@@ -99,11 +101,23 @@ namespace WUI
             // Check if we need to redraw
             if (m_redraw_pending && al_is_event_queue_empty(m_event_queue))
             {
+                if (IsTransparent())
+                {
+                    al_clear_to_color(al_map_rgba(0, 0, 0, 0));
+                }
+                else
+                {
+                    al_clear_to_color(al_map_rgba(CefColorGetR(m_background_color),
+                                                  CefColorGetG(m_background_color),
+                                                  CefColorGetB(m_background_color),
+                                                  255));
+                }
+
                 // Redraw
 
                 if (m_l_osr_buffer_lock.try_lock())
                 {
-                    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+                    // al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
                     al_draw_bitmap(m_osr_buffer, 0, 0, 0);
                     m_l_osr_buffer_lock.unlock();
                 }

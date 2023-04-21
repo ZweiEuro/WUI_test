@@ -30,8 +30,10 @@ namespace WUI
         std::atomic<bool> m_redraw_pending = false;
 
         // OSR buffer
+    private:
         ALLEGRO_BITMAP *m_osr_buffer = NULL;
         std::mutex m_l_osr_buffer_lock;
+        cef_color_t m_background_color = 0; // if alpha is 0 then it is transparent
 
     public:
         RenderHandler(const int &FPS = BASE_FPS,
@@ -40,19 +42,23 @@ namespace WUI
         ~RenderHandler();
 
         // FrameListener interface
-    public:
+
         void renderLoop();
+        ALLEGRO_DISPLAY *getDisplay() const;
 
         // CefRenderHandler interface
-    public:
+    public: // OSR CEF stuff
         virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect);
 
         virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects, const void *buffer, int width, int height);
         // CefBase interface
 
-        ALLEGRO_DISPLAY *getDisplay() const;
+        inline bool IsTransparent() const
+        {
+            return CefColorGetA(m_background_color) == 0;
+        }
 
-    public:
+        // needed for ref counting
         IMPLEMENT_REFCOUNTING(RenderHandler);
     };
 
