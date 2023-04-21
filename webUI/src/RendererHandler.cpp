@@ -1,5 +1,6 @@
 #include "RenderHandler.hpp"
 
+#include <allegro5/allegro_primitives.h>
 namespace WUI
 {
 
@@ -14,6 +15,7 @@ namespace WUI
 
             DLOG(WARNING) << "Allegro not installed on Renderer start";
             al_init();
+            al_init_primitives_addon();
         }
 
         m_display = al_create_display(width, height);
@@ -117,6 +119,25 @@ namespace WUI
 
                 // Redraw
 
+                static double delta_s = 0;
+
+                {
+                    static auto last_delta_time_point = std::chrono::high_resolution_clock::now();
+                    auto end = std::chrono::high_resolution_clock::now();
+                    delta_s = std::chrono::duration<double, std::milli>(end - last_delta_time_point).count() / 1000; // why is chrono like this -.-
+                    last_delta_time_point = end;
+                }
+
+                m_l_renderables.lock();
+                for (auto &renderable : m_renderables)
+                {
+                    renderable->render(al_get_display_width(m_display),
+                                       al_get_display_height(m_display), delta_s);
+                }
+                m_l_renderables.unlock();
+
+                // draw UI
+
                 if (m_l_osr_buffer_lock.try_lock())
                 {
                     // al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
@@ -178,12 +199,10 @@ namespace WUI
             */
         }
 
-        DLOG(INFO) << "want lock";
         m_l_osr_buffer_lock.lock();
-        DLOG(INFO) << "locked";
 
 #if FULL_REDRAW
-        DLOG(INFO) << "Full  redraw";
+        // DLOG(INFO) << "Full  redraw";
 
         const int size = width * height * 4;
 

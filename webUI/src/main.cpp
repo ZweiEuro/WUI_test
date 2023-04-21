@@ -112,14 +112,33 @@ int main(int argc, char *argv[])
 
 		WUI::InputManager::instance(browser->GetHost());
 
+		// esc shutdown
 		std::thread([=]() -> void
 					{
                   WUI::InputManager::instance()->wait_for_key(ALLEGRO_KEY_ESCAPE);
 				  	DLOG(INFO) << "Shutting down";
-				                    renderHandler->shutdown();
+					renderHandler->shutdown();
 				  WUI::InputManager::instance()->shutdown();
 
                   exit(0); })
+			.detach();
+
+		// click listener
+
+		std::thread([=]() -> void
+					{
+                  while (true)
+                  {
+                    vec2i pos;
+                    auto ok = WUI::InputManager::instance()->wait_for_mouse_button(1, pos);
+                    if (!ok)
+                      return;
+                  
+					// add a ball to the manager
+					DLOG(INFO) << "Adding ball at " << pos.x << ", " << pos.y;
+
+					renderHandler->addObject(std::make_shared<WUI::Ball>(pos.x, pos.y));
+                  } })
 			.detach();
 	}
 

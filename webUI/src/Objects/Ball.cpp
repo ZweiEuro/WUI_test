@@ -1,18 +1,57 @@
 #include "Objects/Ball.hpp"
 
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_primitives.h>
+
+#include <cmath>
+
+#include "include/cef_browser.h"
 namespace WUI
 {
 
-    class Ball : public Renderable
+    Ball::Ball(int x, int y)
     {
-    private:
-        float m_x;
-        float m_y;
-        float m_radius;
-        float m_speed;
-        float m_angle;
+        m_x = x;
+        m_y = y;
+        m_radius = 10 + rand() % 100;
+        m_speed = 200 + rand() % 200;
+        m_angle = 20 + rand() % 20;
+        m_color = al_map_rgb(rand() % 255, rand() % 255, rand() % 255);
 
-        
-    };
+        DLOG(INFO) << "Ball created at (" << m_x << ", " << m_y << ") with radius " << m_radius << ", speed " << m_speed << " and angle " << m_angle;
+    }
+
+    void Ball::render(const size_t displayWidth, const size_t displayHeight, const double delta_t)
+    {
+        // change position based on speed and angle
+        m_x += m_speed * delta_t * cos(m_angle);
+        m_y += m_speed * delta_t * sin(m_angle);
+
+        // bounce off walls
+        if (m_x < 0)
+        {
+            m_x = 0;
+            m_angle = M_PI - m_angle;
+        }
+        else if (m_x > displayWidth)
+        {
+            m_x = displayWidth;
+            m_angle = M_PI - m_angle;
+        }
+
+        if (m_y < 0)
+        {
+            m_y = 0;
+            m_angle = -m_angle;
+        }
+        else if (m_y > displayHeight)
+        {
+            m_y = displayHeight;
+            m_angle = -m_angle;
+        }
+
+        // draw
+        al_draw_filled_circle(m_x, m_y, m_radius, m_color);
+    }
 
 }

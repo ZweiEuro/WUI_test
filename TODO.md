@@ -6,3 +6,4 @@
 - forward key events to the UI
 - make the renderer of allegro independent thread from main (create display in that new thread and manage it internally)
 - handle mouse wheel events
+- separate game object management from the renderer

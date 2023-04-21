@@ -104,15 +104,12 @@ namespace WUI
                 // convertKeyEvent(event, cef_key_event);
                 // m_browser_host->SendKeyEvent(cef_key_event);
 
-                al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
-
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
                 DLOG(INFO) << "mouse DOWN Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << " " << event.mouse.y;
 
                 convertMouseEvent(event, cef_mouse_event);
                 m_browser_host->SendMouseClickEvent(cef_mouse_event, event.mouse.button == 1 ? MBT_LEFT : MBT_RIGHT, false, 1);
-                al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
 
                 // TODO some kind of system to differenciate if the UI consumed the event or not?
                 // possibly only solvable JS side.
@@ -125,7 +122,6 @@ namespace WUI
 
                 convertMouseEvent(event, cef_mouse_event);
                 m_browser_host->SendMouseClickEvent(cef_mouse_event, event.mouse.button == 1 ? MBT_LEFT : MBT_RIGHT, true, 1);
-                al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
 
                 // TODO some kind of system to differenciate if the UI consumed the event or not?
                 // possibly only solvable JS side.
@@ -143,7 +139,6 @@ namespace WUI
             case ALLEGRO_EVENT_KEY_CHAR:
             case ALLEGRO_EVENT_KEY_UP:
                 // ignore all type events or key up events
-                al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
 
                 break;
 
@@ -151,6 +146,7 @@ namespace WUI
                 DLOG(INFO) << "[Input] event received: " << event.type;
                 break;
             }
+            al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
         }
         DLOG(INFO) << ("[Input] exited");
         return;
@@ -185,6 +181,8 @@ namespace WUI
 
     bool InputManager::wait_for_mouse_button(int button, vec2i &mouse_pos)
     {
+        DLOG(INFO) << "[Input] waiting for mouse button " << button;
+
         auto queue = al_create_event_queue();
         al_register_event_source(queue, &m_InputManager_event_source);
         bool exit = false;
@@ -192,6 +190,7 @@ namespace WUI
         {
             ALLEGRO_EVENT event;
             al_wait_for_event(queue, &event);
+
             if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
             {
                 exit = (event.mouse.button & button);

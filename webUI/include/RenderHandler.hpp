@@ -9,6 +9,8 @@
 #include <include/cef_render_handler.h>
 #include <mutex>
 
+#include "Objects/Renderable.hpp"
+
 namespace WUI
 {
     const size_t BASE_FPS = 60;
@@ -35,7 +37,12 @@ namespace WUI
         std::mutex m_l_osr_buffer_lock;
         cef_color_t m_background_color = 0; // if alpha is 0 then it is transparent
 
-    public:
+    private:
+        // game management which is not supposed to be here technically
+        std::mutex m_l_renderables;
+        std::vector<std::shared_ptr<Renderable>> m_renderables;
+
+       public:
         RenderHandler(const int &FPS = BASE_FPS,
                       const int &width = BASE_WIDTH,
                       const int &height = BASE_HEIGHT);
@@ -62,6 +69,15 @@ namespace WUI
 
         // needed for ref counting
         IMPLEMENT_REFCOUNTING(RenderHandler);
+
+        // object management
+    public:
+        void addObject(std::shared_ptr<Renderable> renderable)
+        {
+            m_l_renderables.lock();
+            m_renderables.push_back(renderable);
+            m_l_renderables.unlock();
+        }
     };
 
 }
