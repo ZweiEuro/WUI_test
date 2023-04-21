@@ -90,6 +90,7 @@ namespace WUI
                 convertMouseEvent(event, cef_mouse_event);
 
                 m_browser_host->SendMouseMoveEvent(cef_mouse_event, false);
+                // DLOG(INFO) << "mouse moved to " << event.mouse.x << " " << event.mouse.y;
 
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
@@ -107,7 +108,7 @@ namespace WUI
 
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                DLOG(INFO) << "mouse pressed pressed Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << event.mouse.y;
+                DLOG(INFO) << "mouse pressed pressed Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << " " << event.mouse.y;
 
                 convertMouseEvent(event, cef_mouse_event);
                 m_browser_host->SendMouseClickEvent(cef_mouse_event, event.mouse.button == 1 ? MBT_LEFT : MBT_RIGHT, false, 1);
