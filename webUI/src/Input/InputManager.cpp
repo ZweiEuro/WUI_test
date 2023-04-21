@@ -108,10 +108,23 @@ namespace WUI
 
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                DLOG(INFO) << "mouse pressed pressed Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << " " << event.mouse.y;
+                DLOG(INFO) << "mouse DOWN Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << " " << event.mouse.y;
 
                 convertMouseEvent(event, cef_mouse_event);
                 m_browser_host->SendMouseClickEvent(cef_mouse_event, event.mouse.button == 1 ? MBT_LEFT : MBT_RIGHT, false, 1);
+                al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
+
+                // TODO some kind of system to differenciate if the UI consumed the event or not?
+                // possibly only solvable JS side.
+                // allegro -> UI -> consumes -> end event
+                // allegro -> UI -> doesn't consume -> back to allegro via a binding
+
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+                DLOG(INFO) << "mouse UP Button " << (event.mouse.button == 1 ? "left" : "right") << "(" << event.mouse.button << ">2 = other) @ " << event.mouse.x << " " << event.mouse.y;
+
+                convertMouseEvent(event, cef_mouse_event);
+                m_browser_host->SendMouseClickEvent(cef_mouse_event, event.mouse.button == 1 ? MBT_LEFT : MBT_RIGHT, true, 1);
                 al_emit_user_event(&m_InputManager_event_source, &event, nullptr);
 
                 // TODO some kind of system to differenciate if the UI consumed the event or not?
@@ -127,7 +140,6 @@ namespace WUI
                 // ignore since they have permission problems on ubuntu/kde
                 break;
 
-            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
             case ALLEGRO_EVENT_KEY_CHAR:
             case ALLEGRO_EVENT_KEY_UP:
                 // ignore all type events or key up events

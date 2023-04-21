@@ -34,12 +34,36 @@
     </style>    
 </head>
 
+
+<script>
+  function incrementValue()
+        {
+            var value = parseInt(document.getElementById('manual').value, 10);
+            value = isNaN(value) ? 0 : value;
+            value++;
+            document.getElementById('manual').value = value;
+        }
+
+
+        setInterval(function() {
+            var value = parseInt(document.getElementById('auto').value, 10);
+            value = isNaN(value) ? 0 : value;
+            value++;
+            document.getElementById('auto').value = value;
+        }, 1000);
+</script>
+
 <body>
 <div>
     <h1>Example Domain</h1>
-    <p>This domain is for use in illustrative examples in documents. You may use this
-    domain in literature without prior coordination or asking for permission.</p>
-    <p><a href="https://www.iana.org/domains/example">More information...</a></p>
+    <p>Lorem ipsum yes etc</p>
+
+    <input type="text" id="auto" value="0"/>
+    <input type="text" id="manual" value="0"/>
+
+    <input type="button" onclick="incrementValue()" value="Increment Value" />
+    
+
 </div>
 </body>
 </html>

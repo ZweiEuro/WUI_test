@@ -3,6 +3,8 @@
 namespace WUI
 {
 
+#define FULL_REDRAW 1
+
     RenderHandler::RenderHandler(const int &FPS,
                                  const int &width,
                                  const int &height)
@@ -179,6 +181,26 @@ namespace WUI
         DLOG(INFO) << "want lock";
         m_l_osr_buffer_lock.lock();
         DLOG(INFO) << "locked";
+
+#if FULL_REDRAW
+        DLOG(INFO) << "Full  redraw";
+
+        const int size = width * height * 4;
+
+        auto locked_region = al_lock_bitmap(m_osr_buffer, ALLEGRO_PIXEL_FORMAT_RGBA_8888, ALLEGRO_LOCK_WRITEONLY);
+        if (!locked_region)
+        {
+            DLOG(FATAL) << "Failed to lock bitmap";
+            exit(1);
+        }
+
+        // Data copied in is in format BGRA
+        // paint the region in a random color
+
+        memcpy(locked_region->data, (void *)((size_t)buffer_rgba), size);
+
+        m_l_osr_buffer_lock.unlock();
+#else
         for (auto rect : dirtyRects)
         {
             // TODO create the correct color buffer here and only for as large as the dirty rect needs it
@@ -203,6 +225,8 @@ namespace WUI
 
             m_l_osr_buffer_lock.unlock();
         }
+#endif
+
         al_unlock_bitmap(m_osr_buffer);
     }
 
