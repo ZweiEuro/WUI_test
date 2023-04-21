@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
 #endif
 
 		// init custom scheme for local files
-		CefSchemeRegistrar::AddCustomScheme("local", true);
 
 		bool result = CefInitialize(args, settings, nullptr, nullptr);
 
@@ -81,7 +80,7 @@ int main(int argc, char *argv[])
 
 	// init renderer and display
 
-	RenderHandler *renderHandler = new RenderHandler();
+	auto *renderHandler = new WUI::RenderHandler();
 	std::string current_dir = "";
 	{
 		auto charp = al_get_current_directory();
@@ -91,12 +90,12 @@ int main(int argc, char *argv[])
 
 	// create browser-window
 	CefRefPtr<CefBrowser> browser;
-	CefRefPtr<BrowserClient> browserClient;
+	CefRefPtr<WUI::BrowserClient> browserClient;
 	{
 		CefWindowInfo window_info;
 		window_info.SetAsWindowless(0); // false means no transparency (site background colour)
 
-		browserClient = new BrowserClient(renderHandler);
+		browserClient = new WUI::BrowserClient(renderHandler);
 
 		CefBrowserSettings browserSettings;
 		browserSettings.windowless_frame_rate = 60; // 30 is default

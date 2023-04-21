@@ -4,22 +4,26 @@
 
 #include "RenderHandler.hpp"
 
-// Client actually handling the html internals
-class BrowserClient : public CefClient
+namespace WUI
 {
-public:
-    BrowserClient(RenderHandler *renderHandler)
-        : m_renderHandler(renderHandler)
+
+    // Client actually handling the html internals
+    class BrowserClient : public CefClient
     {
-        ;
-    }
+    public:
+        BrowserClient(RenderHandler *renderHandler)
+            : m_renderHandler(renderHandler)
+        {
+            ;
+        }
 
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler()
-    {
-        return m_renderHandler;
-    }
+        virtual CefRefPtr<CefRenderHandler> GetRenderHandler()
+        {
+            return m_renderHandler;
+        }
 
-    CefRefPtr<CefRenderHandler> m_renderHandler;
+        CefRefPtr<CefRenderHandler> m_renderHandler;
 
-    IMPLEMENT_REFCOUNTING(BrowserClient);
-};
+        IMPLEMENT_REFCOUNTING(BrowserClient);
+    };
+}
