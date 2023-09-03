@@ -3,7 +3,15 @@
 - Fix renderer to only convert pixel data in designated rect sizes and not full buffer (data bottleneck)
 - parse mouse input modifiers, strg/ctrl/shift click
 - parse windows specific system keys?
-- forward key events to the UI
+- forward key events to the UI, and back if interaction wasn't consumed
 - make the renderer of allegro independent thread from main (create display in that new thread and manage it internally)
 - handle mouse wheel events
 - separate game object management from the renderer
+- Smarter object instantiation and backend Rendering things in general (make some kind of demo game out of this)
+- Reactive window resizing and adjustment of backbuffer and pipeline
+- Work out JS <-> Engine bidirectional binding and function subscriptions, event based system
+  - JS and Engine should both be able to subscribe to events sent from the other party in some generalistic manner
+  - most likely use the global window object since that can be injected cleanly.
+- hot reloading test
+- complex css styling test
+- Reactive, compressed, webpack, jest, etc compatability test (though this should all pass)

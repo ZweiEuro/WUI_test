@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
                   while (true)
                   {
                     vec2i pos;
-                    auto ok = WUI::InputManager::instance()->wait_for_mouse_button(1, pos);
+                    auto ok = WUI::InputManager::instance()->wait_for_mouse_button(2, pos);
                     if (!ok)
                       return;
                   

@@ -12,7 +12,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "cd '${workspaceFolder}/build' && ninja webUI -j8",
+            "command": "cd '${workspaceFolder}/build' && ninja webUI -j8 ",
             "problemMatcher": [
                 "$gcc"
             ]
