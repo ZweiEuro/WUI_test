@@ -1,1 +1,5 @@
 In this folder the CEF release should reside
+
+1. Go to: https://cef-builds.spotifycdn.com/index.html#linux64
+2. download the most recent stable build
+3. extract, and put the _content_ of it here
